@@ -6,6 +6,7 @@
 #include <std_msgs/Float32.h>
 #include <sensor_msgs/Joy.h>
 #include <xbox_joy/XboxButtons.h>
+#include <xbox_joy/XboxAxes.h>
 
 class XboxJoyTeleop
 {
@@ -22,7 +23,8 @@ class XboxJoyTeleop
 
         // ROS Publisher(s)
         // -----------------------
-        ros::Publisher xboxJoy_;        // General Xbox Controller
+        ros::Publisher xboxJoyButtons_;        // General Xbox Controller Buttons
+        ros::Publisher xboxJoyAxes_;        // General Xbox Controller Buttons
 
         // ROS Subscriber(s)
         // -----------------------
@@ -31,6 +33,8 @@ class XboxJoyTeleop
         // Private variables
         int A_, B_, X_, Y_, LB_, RB_, Back_, Start_, Power_;
         int JoyLeft_PB_, JoyRight_PB_, DPad_UpDn_, DPad_LeftRight_;
+        int JoyLeft_X_, JoyLeft_Y_, JoyRight_X_, JoyRight_Y_, LT_, RT_;
+        double JoyScale_;
 
 };
 
@@ -53,11 +57,23 @@ XboxJoyTeleop::XboxJoyTeleop():
       JoyRight_PB_(10),
 
       // Axes
+      JoyLeft_X_(0),
+      JoyLeft_Y_(1),
+      JoyRight_X_(3),
+      JoyRight_Y_(4),
+      RT_(5),
+      LT_(2),
       DPad_LeftRight_(6),
       DPad_UpDn_(7)
 {
+    // Parameter
+    nh_.param("joystick_scale", JoyScale_, 100.0);   // Scaling parameter for joystick values (default = 100.0)
+
     // Advertise Xbox Buttons to topic
-    xboxJoy_ = nh_.advertise<xbox_joy::XboxButtons>("xbox_buttons", 1);
+    xboxJoyButtons_ = nh_.advertise<xbox_joy::XboxButtons>("xbox_buttons", 1);
+    
+    // Advertise Xbox Axes to topic
+    xboxJoyAxes_ = nh_.advertise<xbox_joy::XboxAxes>("xbox_axes", 1);
 
     // Subscribe to Joy topic
     joySub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &XboxJoyTeleop::joyCallback, this);
@@ -69,8 +85,9 @@ void XboxJoyTeleop::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     // -----------------------
     
     xbox_joy::XboxButtons xboxButton;
+    xbox_joy::XboxAxes xboxAxes;
 
-    // Mapping from Joy to XboxButtons
+    // Mapping from Joy.Buttons to XboxButtons
     xboxButton.A = joy->buttons[A_];
     xboxButton.B = joy->buttons[B_];
     xboxButton.X = joy->buttons[X_];
@@ -88,10 +105,18 @@ void XboxJoyTeleop::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     xboxButton.DPad_Left = (joy->axes[DPad_LeftRight_] > 0.0);
     xboxButton.DPad_Right = (joy->axes[DPad_LeftRight_] < 0.0);
 
-    // Publish
-    xboxJoy_.publish(xboxButton);
-}
+    // Mapping from Joy.Axes to XboxAxes
+    xboxAxes.JoyLeft_X = (-JoyScale_) * joy->axes[JoyLeft_X_];          // Scaling to 0-100% (from -1.0 to 1.0), with Right-Direciton as positive
+    xboxAxes.JoyLeft_Y = JoyScale_ * joy->axes[JoyLeft_Y_];
+    xboxAxes.JoyRight_X = (-JoyScale_) * joy->axes[JoyRight_X_];        // Scaling to 0-100% (from -1.0 to 1.0), with Right-Direciton as positive
+    xboxAxes.JoyRight_Y = JoyScale_ * joy->axes[JoyRight_Y_];
+    xboxAxes.RT = ((-1)*(joy->axes[RT_]) + 1.0) * (JoyScale_) / (2);    // Scaling to 0-100% (from 1.0 to -1.0) and changing of sign
+    xboxAxes.LT = ((-1)*(joy->axes[LT_]) + 1.0) * (JoyScale_) / (2);    // Scaling to 0-100% (from 1.0 to -1.0) and changing of sign
 
+    // Publish
+    xboxJoyButtons_.publish(xboxButton);
+    xboxJoyAxes_.publish(xboxAxes);
+}
 
 int main(int argc, char** argv)
 {
