@@ -16,6 +16,18 @@ $ ls /dev/input/
 Test joystick  
 $ sudo jstest /dev/input/jsX
 
+Joystick permission and accessibility:
+http://wiki.ros.org/joy/Tutorials/ConfiguringALinuxJoystick
+
+List permissions of the joystick
+$ ls -l /dev/input/jsX
+
+Results:
+  crw-rw-XX- 1 root dialout 188, 0 2021-04-19 20:15 /dev/input/jsX
+  
+If XX is rw: the js device is configured properly.
+If XX is --: the js device is not configured properly and you need to:
+$ sudo chmod a+rw /dev/input/jsX
 
 Alter the "xbox_control.launch.launch" file for your project
 <param name="dev" type="string" value="/dev/input/jsX" />
