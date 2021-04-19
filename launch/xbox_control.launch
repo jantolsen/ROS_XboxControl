@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+ <!-- joy node -->
+  <node respawn="true" pkg="joy"
+        type="joy_node" name="joy_xbox" >
+    <param name="dev" type="string" value="/dev/input/js0" />
+    <param name="deadzone" value="0.12" />
+  </node>
+
+  <node pkg="xbox_joy" type="xbox_joy_teleop" name="xbox_controller"/>
+</launch>
