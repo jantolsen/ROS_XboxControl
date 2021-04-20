@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>xbox_joy</name>
+  <name>xbox_control</name>
   <version>0.0.0</version>
-  <description>The xbox_joy package</description>
+  <description>The xbox_controller package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

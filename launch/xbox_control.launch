@@ -9,5 +9,5 @@
   </node>
 
   <param name="joystick_scale" value="100.0" type="double"/>
-  <node pkg="xbox_joy" type="xbox_joy_teleop" name="xbox_controller"/>
+  <node pkg="xbox_control" type="xbox_joy_teleop" name="xbox_joystick_controller"/>
 </launch>

@@ -5,8 +5,8 @@
 #include <std_msgs/UInt16.h>
 #include <std_msgs/Float32.h>
 #include <sensor_msgs/Joy.h>
-#include <xbox_joy/XboxButtons.h>
-#include <xbox_joy/XboxAxes.h>
+#include <xbox_control/XboxButtons.h>
+#include <xbox_control/XboxAxes.h>
 
 class XboxJoyTeleop
 {
@@ -70,10 +70,10 @@ XboxJoyTeleop::XboxJoyTeleop():
     nh_.param("joystick_scale", JoyScale_, 100.0);   // Scaling parameter for joystick values (default = 100.0)
 
     // Advertise Xbox Buttons to topic
-    xboxJoyButtons_ = nh_.advertise<xbox_joy::XboxButtons>("xbox_buttons", 1);
+    xboxJoyButtons_ = nh_.advertise<xbox_control::XboxButtons>("xbox_buttons", 1);
     
     // Advertise Xbox Axes to topic
-    xboxJoyAxes_ = nh_.advertise<xbox_joy::XboxAxes>("xbox_axes", 1);
+    xboxJoyAxes_ = nh_.advertise<xbox_control::XboxAxes>("xbox_axes", 1);
 
     // Subscribe to Joy topic
     joySub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &XboxJoyTeleop::joyCallback, this);
@@ -84,8 +84,8 @@ void XboxJoyTeleop::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     // Xbox Controller
     // -----------------------
     
-    xbox_joy::XboxButtons xboxButton;
-    xbox_joy::XboxAxes xboxAxes;
+    xbox_control::XboxButtons xboxButton;
+    xbox_control::XboxAxes xboxAxes;
 
     // Mapping from Joy.Buttons to XboxButtons
     xboxButton.A = joy->buttons[A_];
