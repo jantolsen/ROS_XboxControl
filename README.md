@@ -1,4 +1,4 @@
-# ros_XboxController
+# ROS_XboxControl
 
 Dependencies:
 Following ros-package is used as XboxControl-Driver
