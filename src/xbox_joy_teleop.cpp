@@ -4,7 +4,9 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/UInt16.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Float64.h>
 #include <sensor_msgs/Joy.h>
+#include <sensor_msgs/JointState.h>
 #include <xbox_control/XboxButtons.h>
 #include <xbox_control/XboxAxes.h>
 
@@ -23,18 +25,28 @@ class XboxJoyTeleop
 
         // ROS Publisher(s)
         // -----------------------
-        ros::Publisher xboxJoyButtons_;        // General Xbox Controller Buttons
+        ros::Publisher xboxJoyButtons_;     // General Xbox Controller Buttons
         ros::Publisher xboxJoyAxes_;        // General Xbox Controller Buttons
+
+
+        ros::Publisher joint1Command_;
+        ros::Publisher joint2Command_;
+        ros::Publisher joint3Command_;
+        ros::Publisher joint4Command_;
+        ros::Publisher joint5Command_;
+        ros::Publisher joint6Command_;
 
         // ROS Subscriber(s)
         // -----------------------
-        ros::Subscriber joySub_;        // Acquire data from Xbox Controller
+        ros::Subscriber joySub_;            // Acquire data from Xbox Controller
 
         // Private variables
         int A_, B_, X_, Y_, LB_, RB_, Back_, Start_, Power_;
         int JoyLeft_PB_, JoyRight_PB_, DPad_UpDn_, DPad_LeftRight_;
         int JoyLeft_X_, JoyLeft_Y_, JoyRight_X_, JoyRight_Y_, LT_, RT_;
         double JoyScale_;
+        std_msgs::Float64 Joint1_VelocityCommand, Joint2_VelocityCommand, Joint3_VelocityCommand; 
+        std_msgs::Float64 Joint4_VelocityCommand, Joint5_VelocityCommand, Joint6_VelocityCommand;
 
 };
 
@@ -74,6 +86,14 @@ XboxJoyTeleop::XboxJoyTeleop():
     
     // Advertise Xbox Axes to topic
     xboxJoyAxes_ = nh_.advertise<xbox_control::XboxAxes>("xbox_axes", 1);
+
+    // Advertise Joint Velocity Commands 
+    joint1Command_ = nh_.advertise<std_msgs::Float64>("Joint1_VelocityBased_VelocityController/command", 1);
+    joint2Command_ = nh_.advertise<std_msgs::Float64>("Joint2_VelocityBased_VelocityController/command", 1);
+    joint3Command_ = nh_.advertise<std_msgs::Float64>("Joint3_VelocityBased_VelocityController/command", 1);
+    joint4Command_ = nh_.advertise<std_msgs::Float64>("Joint4_VelocityBased_VelocityController/command", 1);
+    joint5Command_ = nh_.advertise<std_msgs::Float64>("Joint5_VelocityBased_VelocityController/command", 1);
+    joint6Command_ = nh_.advertise<std_msgs::Float64>("Joint6_VelocityBased_VelocityController/command", 1);
 
     // Subscribe to Joy topic
     joySub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &XboxJoyTeleop::joyCallback, this);
@@ -116,6 +136,55 @@ void XboxJoyTeleop::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     // Publish
     xboxJoyButtons_.publish(xboxButton);
     xboxJoyAxes_.publish(xboxAxes);
+
+    // Joint Space Teleop:
+    // ---------------------------------
+        // Joint 1
+        if (xboxAxes.RT > 0.0 && xboxAxes.LT == 0)
+        {
+            Joint1_VelocityCommand.data = xboxAxes.RT * 0.01;
+        }
+        else if (xboxAxes.LT > 0.0 && xboxAxes.RT == 0)
+        {
+            Joint1_VelocityCommand.data = (-1) * xboxAxes.LT * 0.01;
+        }
+        else
+        {
+            Joint1_VelocityCommand.data = 0.0;
+        }
+
+        joint1Command_.publish(Joint1_VelocityCommand);    
+
+        // Joint 2
+        Joint2_VelocityCommand.data = xboxAxes.JoyLeft_X * 0.01;
+        joint2Command_.publish(Joint2_VelocityCommand); 
+
+        // Joint 3
+        Joint3_VelocityCommand.data = xboxAxes.JoyLeft_Y * 0.01;
+        joint3Command_.publish(Joint3_VelocityCommand); 
+
+        // Joint 4
+        Joint4_VelocityCommand.data = xboxAxes.JoyRight_X * 0.01;
+        joint4Command_.publish(Joint4_VelocityCommand); 
+
+        // Joint 5
+        Joint5_VelocityCommand.data = xboxAxes.JoyRight_Y * 0.01;
+        joint5Command_.publish(Joint5_VelocityCommand); 
+
+         // Joint 6
+        if (xboxButton.RB = true && xboxButton.LB == false)
+        {
+            Joint6_VelocityCommand.data = 0.5;
+        }
+        else if (xboxButton.RB = false && xboxButton.LB == true)
+        {
+            Joint6_VelocityCommand.data = -0.5;
+        }
+        else
+        {
+            Joint6_VelocityCommand.data = 0.0;
+        }
+        joint6Command_.publish(Joint6_VelocityCommand); 
 }
 
 int main(int argc, char** argv)
